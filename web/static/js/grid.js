@@ -9,7 +9,7 @@ function gridDataMaker() {
   var ypos = 1;
   var width = 50;
   var height = 50;
-  var click = 0;
+  var click = 'unselected';
   var n = 6;
   // iterate for rows 
   for (var row = 0; row < n; row++) {
@@ -42,6 +42,7 @@ export class Board {
   constructor(channel, room){
     var that = this;
     this.data = gridDataMaker(); 
+    console.log(that.data)
     this.grid = d3.select("#grid")
       .append("svg")
       .attr("width","510px")
@@ -63,7 +64,20 @@ export class Board {
       .style("fill", (d) => d.tile == 1 ? "steelblue" : "#fff" )
       .style("stroke", "#222")
       .on('click', function(d) {
-         d.click ++;
+        var check = _.max(_.flatMap(that.data, (d) => d).map((d) => d.click == 'selected'))
+        var check2 = _.max(_.flatMap(that.data, (d) => d).map((d) => d.click == 'moved'))
+        if (d.click == 'moved') {
+          d.click = 'confirmed'
+          that.data.map((arr) => arr.map((d2) => d2 == d ? '' : d2.click = 'unselected'))
+        } else if (check & !check2){
+          d.click = 'moved'
+        } else if (d.click == 'selected') {
+          that.data.map((arr) => arr.map((d2) => d2.click = 'unselected'))
+        } else {
+          d.click = 'selected'
+          that.data.map((arr) => arr.map((d2) => d2 == d ? '' : d2.click = 'unselected'))
+        }
+         // d.click ++;
          // if (d.tile == 1){ d3.select(this).style("fill", "blue")}
          // if ((d.click)%2 == 0 ) { d3.select(this).style("fill","#fff"); }
          // if ((d.click)%2 == 1 ) { d3.select(this).style("fill","#2C93E8"); }
@@ -77,10 +91,14 @@ export class Board {
     this.row.selectAll(".square")
         .data(function(d) { return d; })
         .style("fill", (d) => {
-           if (d.click % 2 == 0) {
-             return '#fff'
+           if (d.click == 'selected') {
+             return 'yellow'
+           } else if (d.click == 'moved') {
+             return 'red'
+           } else if (d.click == 'confirmed') {
+             return 'green'
            } else {
-             return 'steelblue'
+             return 'white'
            }
          })
   }
